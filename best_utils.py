@@ -1,0 +1,62 @@
+import matplotlib.image as mpimg
+import numpy as np
+
+def load_image(filename):
+    """Loads an image into a numpy array"""
+    return mpimg.imread(filename)
+
+
+def image_to_features(img, kernel_size):
+    """Linearizes patches of an image into lines.
+    Arguments:
+     :img: the image to linearize of shape (W, H, C)
+     :kernel_size: the length of the side of the patch which will be squared
+     should be odd.
+
+    The radius of the patch is r = (kernel_size - 1) / 2
+    The produced matrix has shape ((W *H, kernel_size**2 * C)
+    """
+    v = (kernel_size - 1) // 2
+    topline = img[:v, :]
+    bottomline = img[:v, :]
+    padded = np.vstack([topline, img, bottomline])
+    leftcolum = padded[:, :v]
+    rightcolumn = padded[:, :v]
+    padded = np.hstack([leftcolum, padded, rightcolumn])
+    features = []
+    for i in range(padded.shape[0] - (kernel_size - 1)):
+        for j in range(padded.shape[1] - (kernel_size - 1)):
+            newline = np.ravel(padded[i : i + kernel_size, j : j + kernel_size])
+            features.append(newline)
+    return np.vstack(features)
+
+
+def reassemble(lines, kernel_size, original_w, original_h, channels=3):
+    """Reassembles the matrix produced by image_to_features into an image"""
+    v = (kernel_size - 1) // 2
+    center_flat = v * kernel_size + v
+    shifter = np.arange(lines.shape[0]) * lines.shape[1]
+    shifter = np.reshape(shifter, (len(shifter), 1))
+    shifter = np.tile(shifter, (1, channels))
+    mask = np.array([center_flat * channels + i for i in range(channels)])
+    mask = np.tile(mask, (lines.shape[0], 1))
+    mask = shifter + mask
+    mask = np.ravel(mask)
+    flat = np.ravel(lines)
+    pixels = flat[mask]
+    return np.reshape(pixels, (original_w, original_h, channels))
+
+
+def crop_groundtruth(img, kernel_size=None):
+    #radius = (kernel_size - 1) // 2
+    img[img < 0.5] = -1
+    img[img >= 0.5] = 1
+    #return img[radius : -radius, radius : -radius] not needed since image_to_features does padding
+    return img
+
+
+def preds_to_tensor(preds, kernel_size, n, w, h):
+    """Transforms the flat vector of probability predicted into an image"""
+    #return np.reshape(preds, (n, w - (kernel_size - 1), h - (kernel_size - 1))) not needed <= padding
+    return np.reshape(preds, (n, w, h))
+
