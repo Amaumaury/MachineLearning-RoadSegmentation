@@ -19,8 +19,8 @@ gt_imgs = [load_image(GT_DIR + file) for file in files]
 
 KERNEL_SIDE = 3
 
-features = np.vstack([image_to_features(img, KERNEL_SIDE) for img in imgs[:2]])
-labels = [crop_groundtruth(gt, KERNEL_SIDE) for gt in gt_imgs[:2]]
+features = np.vstack([image_to_features(img, KERNEL_SIDE) for img in imgs])
+labels = [crop_groundtruth(gt, KERNEL_SIDE) for gt in gt_imgs]
 labels = np.ravel(labels)
 
 X = torch.from_numpy(features)
