@@ -1,6 +1,7 @@
 from torch.autograd import Variable
 import torch
 import datetime
+import os
 
 
 def train_step(features, labels, model, lossfunc, optimizer):
@@ -30,6 +31,7 @@ def train(features, labels, model, lossfunc, optimizer, num_epoch, print_interva
 def train_with_snapshots(features, labels, model, lossfunc, optimizer,
         num_epoch, print_interval, snapshot_interval):
 
+    last = None
     for epoch in range(num_epoch):
         loss = train_step(features, labels, model, lossfunc, optimizer)
 
@@ -43,4 +45,9 @@ def train_with_snapshots(features, labels, model, lossfunc, optimizer,
                 'model_state': model.state_dict(),
                 'optimizer_state': optimizer.state_dict()
             }
-            torch.save(state, 'train_snapshot-{}-{}'.format(str(datetime.datetime.now()), epoch))
+
+            if last:
+                os.remove(last)
+            last = 'train_snapshot-{}-{}'.format(str(datetime.datetime.now()), epoch)
+            torch.save(state, last)
+
