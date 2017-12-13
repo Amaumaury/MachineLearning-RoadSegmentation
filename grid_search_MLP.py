@@ -9,7 +9,7 @@ import torch.nn as nn
 from best_utils import *
 from train import train
 from cross_validation import cross_validation
-from image_processing import rgb_to_hsv, saturate_hsv_img
+from image_preprocessing import rgb_to_hsv, saturate_hsv_img
 
 ROOT_DIR = 'training/'
 IMAGE_DIR = ROOT_DIR + 'images/'
@@ -20,7 +20,9 @@ imgs = np.stack([saturate_hsv_img(rgb_to_hsv(load_image(IMAGE_DIR + file))) for 
 GT_DIR = ROOT_DIR + 'groundtruth/'
 gt_imgs = np.stack([load_image(GT_DIR + file) for file in files])
 
-CONV_KERNEL_SIDE = 5
+print('Read images')
+
+CONV_KERNEL_SIDE = 3 
 PATCH_SIDE = 10
 
 patched_imgs = np.stack([patch_image(im, PATCH_SIDE) for im in imgs])
@@ -28,6 +30,8 @@ patched_gts = np.stack([patch_groundtruth(gt, PATCH_SIDE) for gt in gt_imgs])
 
 features_per_image = [image_to_features(img, CONV_KERNEL_SIDE) for img in patched_imgs]
 flattened_labels_per_image = [np.ravel(crop_groundtruth(img, CONV_KERNEL_SIDE)) for img in patched_gts]
+
+print('Preprocessing done')
 
 W, H, *_ = imgs[0].shape
 PATCHES_PER_IMAGE = (W * H) // PATCH_SIDE**2
@@ -53,7 +57,7 @@ def train_predict(test_indices, train_indices, learning_rate, hidden_size, niter
 
     optimizer = torch.optim.Adam(mlp.parameters(), lr=learning_rate)
     costf = torch.nn.MSELoss()
-    train(train_x, train_y, mlp, costf, optimizer, niter, 500)
+    train(train_x, train_y, mlp, costf, optimizer, niter, 1000)
 
     y_pred = mlp(test_x).data.numpy()
 
@@ -78,6 +82,8 @@ def generate_train_predict_MLP(learning_rate, hidden_size, niter):
 
 learning_rates_candidates = np.logspace(-1, -4, 8, endpoint=True)
 hidden_size_candidates = range(9, 44, 3)
+
+print('Starting grid search')
 
 f = open('mlp_gridsearch.csv', 'w')
 notepad = csv.writer(f)
