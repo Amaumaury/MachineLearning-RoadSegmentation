@@ -4,7 +4,7 @@ import datetime
 import os
 
 
-def train_step(features, labels, model, lossfunc, optimizer):
+def _train_step(features, labels, model, lossfunc, optimizer):
     x = Variable(features)
     y = Variable(labels)
 
@@ -21,7 +21,7 @@ def train_step(features, labels, model, lossfunc, optimizer):
 
 def train(features, labels, model, lossfunc, optimizer, num_epoch, print_interval=10):
     for epoch in range(num_epoch):
-        loss = train_step(features, labels, model, lossfunc, optimizer)
+        loss = _train_step(features, labels, model, lossfunc, optimizer)
 
         if epoch % print_interval == 0:
             print ('Epoch [%d/%d], Loss: %.4f'
@@ -33,7 +33,7 @@ def train_with_snapshots(features, labels, model, lossfunc, optimizer,
 
     last = None
     for epoch in range(num_epoch):
-        loss = train_step(features, labels, model, lossfunc, optimizer)
+        loss = _train_step(features, labels, model, lossfunc, optimizer)
 
         if epoch % print_interval == 0:
             print ('Epoch [%d/%d], Loss: %.4f'
