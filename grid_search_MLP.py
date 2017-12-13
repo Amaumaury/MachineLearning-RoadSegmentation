@@ -28,7 +28,8 @@ patched_gts = np.stack([patch_groundtruth(gt, PATCH_SIDE) for gt in gt_imgs])
 features_per_image = [image_to_features(img, CONV_KERNEL_SIDE) for img in patched_imgs]
 flattened_labels_per_image = [np.ravel(crop_groundtruth(img, CONV_KERNEL_SIDE)) for img in patched_gts]
 
-W, H = imgs[0].shape
+W, H, *_ = imgs[0].shape
+PATCHES_PER_IMAGE = (W * H) // PATCH_SIDE**2
 
 def train_predict(test_indices, train_indices, learning_rate, hidden_size, niter):
     train_x = np.vstack([features_per_image[i] for i in train_indices])
@@ -56,9 +57,9 @@ def train_predict(test_indices, train_indices, learning_rate, hidden_size, niter
     y_pred = mlp(test_x).data.numpy()
 
     pred_wide = []
-    for i in range(len(train_y)):
-        curr_pred = y_pred[i: i + (W * H) / PATCH_SIDE**2]
-        pred_image = np.reshape(y_pred, (imgs[0].shape[0] / PATCH_SIDE, imgs[0].shape[1] / PATCH_SIDE))
+    for i in range(0, len(y_pred), PATCHES_PER_IMAGE):
+        curr_pred = y_pred[i: i + PATCHES_PER_IMAGE]
+        pred_image = np.reshape(curr_pred, (W // PATCH_SIDE, H // PATCH_SIDE))
         pred_image = np.ravel(unpatch(pred_image, PATCH_SIDE))
         pred_wide.append(pred_image)
     y_pred = np.ravel(pred_wide)
@@ -86,5 +87,4 @@ for hidden_size in hidden_size_candidates:
         print([hidden_size, lr, res])
         notepad.writerow([hidden_size, lr, res])
 f.close()
-
 
