@@ -2,6 +2,8 @@ import matplotlib.image as mpimg
 import numpy as np
 import utils
 
+import torch.nn as nn
+
 def load_image(filename):
     """Loads an image into a numpy array"""
     return mpimg.imread(filename)
@@ -83,4 +85,33 @@ def patch_image(img, patch_size):
 
 def patch_groundtruth(img, patch_size):
     return patch_map(img, patch_size, utils.patch_to_class)
+
+
+class NCWHtoNWHC(nn.Module):
+    def __init__(self):
+        super(NCWHtoNWHC, self).__init__()
+    def forward(self, x):
+        return x.permute(0,2,3,1)
+
+class NWHCtoNCWH(nn.Module):
+    def __init__(self):
+        super(NWHCtoNCWH, self).__init__()
+    def forward(self, x):
+        return x.permute(0, 3, 1, 2)
+
+class Squeezer1(nn.Module):
+    def __init__(self):
+        super(Squeezer1, self).__init__()
+    def forward(self, x):
+        return x.squeeze(dim=1)
+
+class Threshold(nn.Module):
+    def __init__(self, val):
+        super(Threshold, self).__init__()
+        self.val = val
+    def forward(self, x):
+        x[torch.lt(x, self.val).detach()] = -1
+        x[torch.ge(x, self.val).detach()] = 1
+        return x
+
 
