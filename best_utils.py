@@ -89,7 +89,10 @@ def unpatch(patched, patch_size):
         rows.append(np.hstack(row_fragments))
         row_fragments = []
     image = np.vstack(rows)
-    return image
+    if image.shape[2] == 1:
+        return np.squeeze(image, axis=2)
+    else:
+        return image
 
 
 def patch_image(img, patch_size):
