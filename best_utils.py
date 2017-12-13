@@ -1,5 +1,6 @@
 import matplotlib.image as mpimg
 import numpy as np
+import utils
 
 def load_image(filename):
     """Loads an image into a numpy array"""
@@ -14,7 +15,7 @@ def image_to_features(img, kernel_size):
      should be odd.
 
     The radius of the patch is r = (kernel_size - 1) / 2
-    The produced matrix has shape ((W *H, kernel_size**2 * C)
+    The produced matrix has shape ((W * H, kernel_size**2 * C)
     """
     v = (kernel_size - 1) // 2
     topline = img[:v, :]
@@ -59,4 +60,27 @@ def preds_to_tensor(preds, kernel_size, n, w, h):
     """Transforms the flat vector of probability predicted into an image"""
     #return np.reshape(preds, (n, w - (kernel_size - 1), h - (kernel_size - 1))) not needed <= padding
     return np.reshape(preds, (n, w, h))
+
+
+def patch_map(img, patch_size, f=lambda p: p):
+    """Downsamples the provided image by moving a squared patch of size
+    patch_size over it and applying, for each position, the function p
+    """
+    assert all([dim % patch_size == 0 for dim in img.shape[:2]]), 'Dimensions are not divisible by patch size'
+    rows = []
+    for i in range(0, img.shape[0], patch_size):
+        row = []
+        for j in range(0, img.shape[1], patch_size):
+            patch = img[i:i+patch_size, j:j+patch_size]
+            row.append(f(patch))
+        rows.append(row)
+    return np.array(rows)
+
+
+def patch_image(img, patch_size):
+    return patch_map(img, patch_size, lambda p: np.mean(p, axis=(0, 1)))
+
+
+def patch_groundtruth(img, patch_size):
+    return patch_map(img, patch_size, utils.patch_to_class)
 
