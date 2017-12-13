@@ -9,12 +9,13 @@ import torch.nn as nn
 from best_utils import *
 from train import train
 from cross_validation import cross_validation
+from image_processing import rgb_to_hsv, saturate_hsv_img
 
 ROOT_DIR = 'training/'
 IMAGE_DIR = ROOT_DIR + 'images/'
 
 files = os.listdir(IMAGE_DIR)
-imgs = np.stack([load_image(IMAGE_DIR + file) for file in files])
+imgs = np.stack([saturate_hsv_img(rgb_to_hsv(load_image(IMAGE_DIR + file))) for file in files])
 
 GT_DIR = ROOT_DIR + 'groundtruth/'
 gt_imgs = np.stack([load_image(GT_DIR + file) for file in files])
