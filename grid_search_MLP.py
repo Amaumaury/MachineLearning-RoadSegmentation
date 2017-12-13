@@ -22,7 +22,7 @@ gt_imgs = np.stack([load_image(GT_DIR + file) for file in files])
 
 print('Read images')
 
-CONV_KERNEL_SIDE = 3 
+CONV_KERNEL_SIDE = 3
 PATCH_SIDE = 10
 
 patched_imgs = np.stack([patch_image(im, PATCH_SIDE) for im in imgs])
@@ -40,14 +40,14 @@ def train_predict(test_indices, train_indices, learning_rate, hidden_size, niter
     train_x = np.vstack([features_per_image[i] for i in train_indices])
     train_y = np.ravel([flattened_labels_per_image[i] for i in train_indices])
 
-    train_x = torch.from_numpy(train_x)
+    train_x = torch.from_numpy(train_x).type(torch.FloatTensor)
     train_y = torch.from_numpy(train_y).type(torch.FloatTensor)
 
     test_x = np.vstack([features_per_image[i] for i in test_indices])
     test_y = np.ravel([np.ravel(crop_groundtruth(gt_imgs[i])) for i in test_indices])
     #test_y = np.ravel([flattened_labels_per_image[i] for i in test_indices])
 
-    test_x = Variable(torch.from_numpy(test_x))
+    test_x = Variable(torch.from_numpy(test_x).type(torch.FloatTensor))
 
     mlp = nn.Sequential(
         nn.Linear(CONV_KERNEL_SIDE**2 * 3, hidden_size),
