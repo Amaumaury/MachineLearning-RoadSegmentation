@@ -6,7 +6,7 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn
 
-from best_utils import load_image, patch_image, patch_groundtruth, image_to_features, crop_groundtruth
+from best_utils import *
 from train import train
 from cross_validation import cross_validation
 
@@ -28,6 +28,7 @@ patched_gts = np.stack([patch_groundtruth(gt, PATCH_SIDE) for gt in gt_imgs])
 features_per_image = [image_to_features(img, CONV_KERNEL_SIDE) for img in patched_imgs]
 flattened_labels_per_image = [np.ravel(crop_groundtruth(img, CONV_KERNEL_SIDE)) for img in patched_gts]
 
+W, H = imgs[0].shape
 
 def train_predict(test_indices, train_indices, learning_rate, hidden_size, niter):
     train_x = np.vstack([features_per_image[i] for i in train_indices])
@@ -37,7 +38,8 @@ def train_predict(test_indices, train_indices, learning_rate, hidden_size, niter
     train_y = torch.from_numpy(train_y).type(torch.FloatTensor)
 
     test_x = np.vstack([features_per_image[i] for i in test_indices])
-    test_y = np.ravel([flattened_labels_per_image[i] for i in test_indices])
+    test_y = np.ravel([np.ravel(crop_groundtruth(gt_imgs[i])) for i in test_indices])
+    #test_y = np.ravel([flattened_labels_per_image[i] for i in test_indices])
 
     test_x = Variable(torch.from_numpy(test_x))
 
@@ -52,6 +54,15 @@ def train_predict(test_indices, train_indices, learning_rate, hidden_size, niter
     train(train_x, train_y, mlp, costf, optimizer, niter, 500)
 
     y_pred = mlp(test_x).data.numpy()
+
+    pred_wide = []
+    for i in range(len(train_y)):
+        curr_pred = y_pred[i: i + (W * H) / PATCH_SIDE**2]
+        pred_image = np.reshape(y_pred, (imgs[0].shape[0] / PATCH_SIDE, imgs[0].shape[1] / PATCH_SIDE))
+        pred_image = np.ravel(unpatch(pred_image, PATCH_SIDE))
+        pred_wide.append(pred_image)
+    y_pred = np.ravel(pred_wide)
+
     y_pred[y_pred <= 0] = -1
     y_pred[y_pred > 0] = 1
 
