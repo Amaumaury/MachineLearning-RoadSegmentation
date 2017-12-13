@@ -9,7 +9,7 @@ import torch.nn as nn
 from best_utils import *
 from train import train
 from cross_validation import cross_validation
-from image_processing import rgb_to_hsv, saturate_hsv_img
+from image_preprocessing import rgb_to_hsv, saturate_hsv_img
 
 ROOT_DIR = 'training/'
 IMAGE_DIR = ROOT_DIR + 'images/'
