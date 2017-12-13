@@ -79,6 +79,19 @@ def patch_map(img, patch_size, f=lambda p: p):
     return np.array(rows)
 
 
+def unpatch(patched, patch_size):
+    rows = []
+    for row in patched:
+        row_fragments = []
+        for pixel in row:
+            patch = np.tile(pixel, (patch_size, patch_size, 1))
+            row_fragments.append(patch)
+        rows.append(np.hstack(row_fragments))
+        row_fragments = []
+    image = np.vstack(rows)
+    return image
+
+
 def patch_image(img, patch_size):
     return patch_map(img, patch_size, lambda p: np.mean(p, axis=(0, 1)))
 
