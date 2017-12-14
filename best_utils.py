@@ -3,6 +3,7 @@ import numpy as np
 import utils
 from sklearn.cluster import MeanShift
 
+import torch
 import torch.nn as nn
 
 def load_image(filename):
@@ -104,11 +105,16 @@ def patch_groundtruth(img, patch_size):
     return patch_map(img, patch_size, utils.patch_to_class)
 
 
+def drop_external_layers(img, size_to_drop):
+    return img[size_to_drop:-size_to_drop, size_to_drop:-size_to_drop]
+
+
 class NCWHtoNWHC(nn.Module):
     def __init__(self):
         super(NCWHtoNWHC, self).__init__()
     def forward(self, x):
         return x.permute(0,2,3,1)
+
 
 class NWHCtoNCWH(nn.Module):
     def __init__(self):
@@ -116,26 +122,21 @@ class NWHCtoNCWH(nn.Module):
     def forward(self, x):
         return x.permute(0, 3, 1, 2)
 
-class Squeezer1(nn.Module):
-    def __init__(self):
-        super(Squeezer1, self).__init__()
-    def forward(self, x):
-        return x.squeeze(dim=1)
 
 class Threshold(nn.Module):
     def __init__(self, val):
         super(Threshold, self).__init__()
         self.val = val
     def forward(self, x):
-        x[torch.lt(x, self.val).detach()] = -1
-        x[torch.ge(x, self.val).detach()] = 1
-        return x
+        s1 = x[:,:,:,0].contiguous().view(-1)
+        s2 = x[:,:,:,1].contiguous().view(-1)
+        return torch.stack([s1, s2], dim=1)
 
-def meanShiftFilter(img):
+
+def mean_shift_filter(img):
     X = np.reshape(img, [-1, 3])
     original_shape = img.shape
     ms = MeanShift(bandwidth=0.013, bin_seeding=True)
     ms.fit(X)
     labels = ms.labels_
     return np.reshape(labels, original_shape[:2])
-    
