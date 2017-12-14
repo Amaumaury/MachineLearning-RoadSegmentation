@@ -1,10 +1,14 @@
 import matplotlib.image as mpimg
+
 import numpy as np
+
 import utils
-from sklearn.cluster import MeanShift
 
 import torch
 import torch.nn as nn
+
+from sklearn.cluster import MeanShift
+from skimage.util import pad
 
 def load_image(filename):
     """Loads an image into a numpy array"""
@@ -109,6 +113,13 @@ def drop_external_layers(img, size_to_drop):
     return img[size_to_drop:-size_to_drop, size_to_drop:-size_to_drop]
 
 
+def ncwh_to_nwhc(t):
+    return t.permute(0,2,3,1)
+
+def nwhc_to_ncwh(t):
+    return t.permute(0, 3, 1, 2)
+
+
 class NCWHtoNWHC(nn.Module):
     def __init__(self):
         super(NCWHtoNWHC, self).__init__()
@@ -140,4 +151,13 @@ def mean_shift_filter(img):
     ms.fit(X)
     labels = ms.labels_
     return np.reshape(labels, original_shape[:2])
+
+
+def reflect_padding(img, border_width):
+    padf = lambda img: pad(img, mode='reflect', pad_width=border_width)
+    if len(img.shape) == 3:
+        return np.stack([padf(img[:,:,i]) for i in range(img.shape[2])], axis=-1)
+    else:
+        return padf(img)
+
 
