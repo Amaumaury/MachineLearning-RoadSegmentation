@@ -54,7 +54,7 @@ def reassemble(lines, kernel_size, original_w, original_h, channels=3):
 
 def crop_groundtruth(img, kernel_size=None):
     #radius = (kernel_size - 1) // 2
-    img[img < 0.5] = -1
+    img[img < 0.5] = 0
     img[img >= 0.5] = 1
     #return img[radius : -radius, radius : -radius] not needed since image_to_features does padding
     return img
@@ -140,3 +140,4 @@ def mean_shift_filter(img):
     ms.fit(X)
     labels = ms.labels_
     return np.reshape(labels, original_shape[:2])
+

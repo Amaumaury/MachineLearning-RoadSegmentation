@@ -69,7 +69,7 @@ def extract_img_features(filename, patch_size):
 
 
 def patch_to_class(patch, threshold=0.25):
-    return 1 if np.sum(patch) > threshold else -1
+    return 1 if np.sum(patch) > threshold else 0
 
 
 def polynomial_enhancement(x, deg):
