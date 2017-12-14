@@ -1,6 +1,7 @@
 import matplotlib.image as mpimg
 import numpy as np
 import utils
+from sklearn.cluster import MeanShift
 
 import torch.nn as nn
 
@@ -130,4 +131,11 @@ class Threshold(nn.Module):
         x[torch.ge(x, self.val).detach()] = 1
         return x
 
-
+def meanShiftFilter(img):
+    X = np.reshape(img, [-1, 3])
+    original_shape = img.shape
+    ms = MeanShift(bandwidth=0.013, bin_seeding=True)
+    ms.fit(X)
+    labels = ms.labels_
+    return np.reshape(labels, original_shape[:2])
+    
