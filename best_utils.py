@@ -15,7 +15,7 @@ def load_image(filename):
     return mpimg.imread(filename)
 
 
-def image_to_features(img, kernel_size, pad=False):
+def image_to_features(img, kernel_size, pad):
     """Linearizes patches of an image into lines.
     Arguments:
      :img: the image to linearize of shape (W, H, C)
@@ -31,9 +31,9 @@ def image_to_features(img, kernel_size, pad=False):
     features = []
     for i in range(img.shape[0] - (kernel_size - 1)):
         for j in range(img.shape[1] - (kernel_size - 1)):
-            newline = np.ravel(img[i : i + kernel_size, j : j + kernel_size])
+            newline = img[i : i + kernel_size, j : j + kernel_size]
             features.append(newline)
-    return np.vstack(features)
+    return np.stack(features)
 
 
 def reassemble(lines, kernel_size, original_w, original_h, channels=3):
