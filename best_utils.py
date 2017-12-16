@@ -15,7 +15,7 @@ def load_image(filename):
     return mpimg.imread(filename)
 
 
-def image_to_features(img, kernel_size):
+def image_to_features(img, kernel_size, pad=False):
     """Linearizes patches of an image into lines.
     Arguments:
      :img: the image to linearize of shape (W, H, C)
@@ -26,16 +26,12 @@ def image_to_features(img, kernel_size):
     The produced matrix has shape ((W * H, kernel_size**2 * C)
     """
     v = (kernel_size - 1) // 2
-    topline = img[:v, :]
-    bottomline = img[:v, :]
-    padded = np.vstack([topline, img, bottomline])
-    leftcolum = padded[:, :v]
-    rightcolumn = padded[:, :v]
-    padded = np.hstack([leftcolum, padded, rightcolumn])
+    if pad:
+        img = reflect_padding(img, v)
     features = []
-    for i in range(padded.shape[0] - (kernel_size - 1)):
-        for j in range(padded.shape[1] - (kernel_size - 1)):
-            newline = np.ravel(padded[i : i + kernel_size, j : j + kernel_size])
+    for i in range(img.shape[0] - (kernel_size - 1)):
+        for j in range(img.shape[1] - (kernel_size - 1)):
+            newline = np.ravel(img[i : i + kernel_size, j : j + kernel_size])
             features.append(newline)
     return np.vstack(features)
 
@@ -58,7 +54,7 @@ def reassemble(lines, kernel_size, original_w, original_h, channels=3):
 
 def crop_groundtruth(img, kernel_size=None):
     #radius = (kernel_size - 1) // 2
-    img[img < 0.5] = 0
+    img[img < 0.5] = -1
     img[img >= 0.5] = 1
     #return img[radius : -radius, radius : -radius] not needed since image_to_features does padding
     return img
@@ -74,7 +70,7 @@ def patch_map(img, patch_size, f=lambda p: p):
     """Downsamples the provided image by moving a squared patch of size
     patch_size over it and applying, for each position, the function p
     """
-    assert all([dim % patch_size == 0 for dim in img.shape[:2]]), 'Dimensions are not divisible by patch size'
+    #assert all([dim % patch_size == 0 for dim in img.shape[:2]]), 'Dimensions are not divisible by patch size'
     rows = []
     for i in range(0, img.shape[0], patch_size):
         row = []
@@ -83,6 +79,14 @@ def patch_map(img, patch_size, f=lambda p: p):
             row.append(f(patch))
         rows.append(row)
     return np.array(rows)
+
+
+def patch_iterator(img, patch_size, stride=1):
+    assert all([dim % patch_size == 0 for dim in img.shape[:2]]), 'Dimensions are not divisible by patch size'
+    for i in range(0, img.shape[0], stride):
+        for j in range(0, img.shape[1], stride):
+            patch = img[i:i+patch_size, j:j+patch_size]
+            yield patch
 
 
 def unpatch(patched, patch_size):
@@ -160,4 +164,11 @@ def reflect_padding(img, border_width):
     else:
         return padf(img)
 
+
+def unstack(img):
+    return np.array([img[:,:,c] for c in range(3)])
+
+
+def restack(img):
+    return np.stack(img, axis=-1)
 
