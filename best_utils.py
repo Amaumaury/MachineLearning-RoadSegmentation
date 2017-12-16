@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 
 from sklearn.cluster import MeanShift
-from skimage.util import pad
 
 def load_image(filename):
     """Loads an image into a numpy array"""
@@ -158,7 +157,7 @@ def mean_shift_filter(img):
 
 
 def reflect_padding(img, border_width):
-    padf = lambda img: pad(img, mode='reflect', pad_width=border_width)
+    padf = lambda img: np.pad(img, mode='reflect', pad_width=border_width)
     if len(img.shape) == 3:
         return np.stack([padf(img[:,:,i]) for i in range(img.shape[2])], axis=-1)
     else:
