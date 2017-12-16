@@ -4,9 +4,6 @@ import numpy as np
 
 import utils
 
-import torch
-import torch.nn as nn
-
 from sklearn.cluster import MeanShift
 
 def load_image(filename):
@@ -114,37 +111,6 @@ def patch_groundtruth(img, patch_size):
 
 def drop_external_layers(img, size_to_drop):
     return img[size_to_drop:-size_to_drop, size_to_drop:-size_to_drop]
-
-
-def ncwh_to_nwhc(t):
-    return t.permute(0,2,3,1)
-
-def nwhc_to_ncwh(t):
-    return t.permute(0, 3, 1, 2)
-
-
-class NCWHtoNWHC(nn.Module):
-    def __init__(self):
-        super(NCWHtoNWHC, self).__init__()
-    def forward(self, x):
-        return x.permute(0,2,3,1)
-
-
-class NWHCtoNCWH(nn.Module):
-    def __init__(self):
-        super(NWHCtoNCWH, self).__init__()
-    def forward(self, x):
-        return x.permute(0, 3, 1, 2)
-
-
-class Threshold(nn.Module):
-    def __init__(self, val):
-        super(Threshold, self).__init__()
-        self.val = val
-    def forward(self, x):
-        s1 = x[:,:,:,0].contiguous().view(-1)
-        s2 = x[:,:,:,1].contiguous().view(-1)
-        return torch.stack([s1, s2], dim=1)
 
 
 def mean_shift_filter(img):
