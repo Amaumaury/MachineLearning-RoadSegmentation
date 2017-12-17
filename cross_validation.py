@@ -1,8 +1,6 @@
 import numpy as np
 from train import train
 from sklearn.metrics import f1_score
-import torch
-
 
 def build_k_indices(num_images, k_fold, seed):
     """build k indices for k-fold."""
