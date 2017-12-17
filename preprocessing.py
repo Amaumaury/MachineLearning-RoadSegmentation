@@ -2,13 +2,25 @@ import matplotlib.image as mpimg
 
 import numpy as np
 
-import utils
-
 from sklearn.cluster import MeanShift
+
 
 def load_image(filename):
     """Loads an image into a numpy array"""
     return mpimg.imread(filename)
+
+
+def neighborhood_iter(img, kernel_size, pad):
+    v = (kernel_size - 1) // 2
+    if pad:
+        img = reflect_padding(img, v)
+    for i in range(img.shape[0] - (kernel_size - 1)):
+        for j in range(img.shape[1] - (kernel_size - 1)):
+            yield img[i : i + kernel_size, j : j + kernel_size]
+
+
+def image_to_neighborhoods(img, kernel_size, pad):
+    return np.stack(list(neighborhood_iter(img, kernel_size, pad)))
 
 
 def image_to_features(img, kernel_size, pad):
@@ -21,15 +33,7 @@ def image_to_features(img, kernel_size, pad):
     The radius of the patch is r = (kernel_size - 1) / 2
     The produced matrix has shape ((W * H, kernel_size**2 * C)
     """
-    v = (kernel_size - 1) // 2
-    if pad:
-        img = reflect_padding(img, v)
-    features = []
-    for i in range(img.shape[0] - (kernel_size - 1)):
-        for j in range(img.shape[1] - (kernel_size - 1)):
-            newline = img[i : i + kernel_size, j : j + kernel_size]
-            features.append(newline)
-    return np.stack(features)
+    return np.vstack(list(map(np.ravel, neighborhood_iter(img, kernel_size, pad))))
 
 
 def reassemble(lines, kernel_size, original_w, original_h, channels=3):
@@ -56,12 +60,6 @@ def crop_groundtruth(img, kernel_size=None):
     return img
 
 
-def preds_to_tensor(preds, kernel_size, n, w, h):
-    """Transforms the flat vector of probability predicted into an image"""
-    #return np.reshape(preds, (n, w - (kernel_size - 1), h - (kernel_size - 1))) not needed <= padding
-    return np.reshape(preds, (n, w, h))
-
-
 def patch_map(img, patch_size, f=lambda p: p):
     """Downsamples the provided image by moving a squared patch of size
     patch_size over it and applying, for each position, the function p
@@ -75,14 +73,6 @@ def patch_map(img, patch_size, f=lambda p: p):
             row.append(f(patch))
         rows.append(row)
     return np.array(rows)
-
-
-def patch_iterator(img, patch_size, stride=1):
-    assert all([dim % patch_size == 0 for dim in img.shape[:2]]), 'Dimensions are not divisible by patch size'
-    for i in range(0, img.shape[0], stride):
-        for j in range(0, img.shape[1], stride):
-            patch = img[i:i+patch_size, j:j+patch_size]
-            yield patch
 
 
 def unpatch(patched, patch_size):
@@ -106,11 +96,7 @@ def patch_image(img, patch_size):
 
 
 def patch_groundtruth(img, patch_size):
-    return patch_map(img, patch_size, utils.patch_to_class)
-
-
-def drop_external_layers(img, size_to_drop):
-    return img[size_to_drop:-size_to_drop, size_to_drop:-size_to_drop]
+    return patch_map(img, patch_size, patch_to_class)
 
 
 def mean_shift_filter(img):
@@ -130,10 +116,6 @@ def reflect_padding(img, border_width):
         return padf(img)
 
 
-def unstack(img):
-    return np.array([img[:,:,c] for c in range(3)])
-
-
-def restack(img):
-    return np.stack(img, axis=-1)
+def patch_to_class(patch, threshold=0.25):
+    return 1 if np.sum(patch) > threshold else 0
 
