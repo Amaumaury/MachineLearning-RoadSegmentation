@@ -1,5 +1,5 @@
 import numpy as np
-from best_utils import *
+from preprocessing import *
 import sys, os
 import keras
 from keras.layers import Conv2D, Dense, Flatten, MaxPooling2D, LeakyReLU, Dropout
@@ -24,11 +24,11 @@ PATCHED_SIZE = imgs.shape[1] // PATCH_SIZE
 WINDOWS_PER_IMAGE = PATCHED_SIZE ** 2
 
 N = 1 # Number of image to be used in training
-epochs = 10
+epochs = 2
 
 leakyness = 0.1
 
-windows_per_image = [image_to_features(im, WINDOW_SIZE, True) for im in patched_imgs[:N]]
+windows_per_image = [image_to_neighborhoods(im, WINDOW_SIZE, True) for im in patched_imgs[:N]]
 windows = np.vstack(windows_per_image)
 
 window_labels = np.ravel(patched_gts[:N])
@@ -67,7 +67,6 @@ window_cnn = keras.models.Sequential([
 
     Flatten(),
     Dense(2, activation='sigmoid'),
-    #LeakyReLU(leakyness),
 ])
 
 window_cnn.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.Adam(lr=0.001), metrics=['accuracy'])
