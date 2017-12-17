@@ -1,5 +1,4 @@
 import numpy as np
-from train import train
 from sklearn.metrics import f1_score
 
 def build_k_indices(num_images, k_fold, seed):
