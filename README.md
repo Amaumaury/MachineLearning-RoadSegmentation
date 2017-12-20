@@ -1,20 +1,18 @@
 # Project Road Segmentation
+Road Segmentation Project done in the Machine Learning class at EPFL in the fall of 2017.
 
-For this choice of project task, we provide a set of satellite images acquired from GoogleMaps.
-We also provide ground-truth images where each pixel is labeled as road or background. 
+## Dependencies & Installation
+- [python](https://www.python.org) version 3.6
+- [numpy](http://www.numpy.org) for array and tensor manipulation.
+- [scipy](https://www.scipy.org) and [scikit-image](http://scikit-image.org) for image processing.
+- [matplotlib](https://matplotlib.org) for plots.
+- [keras](https://keras.io) version 2.0.8 for machine learning with the TensorFlow backend.
 
-Your task is to train a classifier to segment roads in these images, i.e. assigns a label `road=1, background=0` to each pixel.
+All dependencies can be installed with [anaconda](https://www.anaconda.com/download/#macos) for python 3.6.
+Numpy, Scipy, Scikit-image and matplotlib are already installed in the basic conda package.
+To install keras use the command line 'conda install keras'.
 
-Submission system environment setup:
+## Running our model
 
-1. The dataset is available from the Kaggle page, as linked in the PDF project description
-
-2. Obtain the python notebook `segment_aerial_images.ipynb` from this github folder,
-to see example code on how to extract the images as well as corresponding labels of each pixel.
-
-The notebook shows how to use `scikit learn` to generate features from each pixel, and finally train a linear classifier to predict whether each pixel is road or background. Or you can use your own code as well. Our example code here also provides helper functions to visualize the images, labels and predictions. In particular, the two functions `mask_to_submission.py` and `submission_to_mask.py` help you to convert from the submission format to a visualization, and vice versa.
-
-3. As a more advanced approach, try `tf_aerial_images.py`, which demonstrates the use of a basic convolutional neural network in TensorFlow for the same prediction task.
-
-Evaluation Metric:
- [https://www.kaggle.com/wiki/MeanFScore]
+We saved our trained model in the file [...TODO...]
+Simply run the file run.py which will load the model and predict on the tests images and produce the same submission.csv as the one given on Kaggle.
