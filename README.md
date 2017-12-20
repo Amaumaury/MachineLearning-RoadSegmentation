@@ -17,7 +17,7 @@ To install keras use the command line 'conda install keras'.
 We saved our trained model in the file [...TODO...]
 Simply run the file run.py which will load the model and predict on the tests images and produce the same submission.csv as the one given on Kaggle.
 
-## The Team
+## The Team - Les Semi-Croustillants
 - Vincenzo Bazzucchi (vincenzo.bazzucchi@epfl.ch)
 - Amaury Combes (amaury.combes@epfl.ch)
 - Alexis Montavon (alexis.montavon@epfl.ch)
