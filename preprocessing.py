@@ -11,6 +11,9 @@ def load_image(filename):
 
 
 def neighborhood_iter(img, kernel_size, pad):
+    """Iterator over the neighborhoods of the provided image. If pad is True,
+    reflect padding is added
+    """
     v = (kernel_size - 1) // 2
     if pad:
         img = reflect_padding(img, v)
@@ -20,6 +23,7 @@ def neighborhood_iter(img, kernel_size, pad):
 
 
 def image_to_neighborhoods(img, kernel_size, pad):
+    """Converts image in tensor of neighborhoods"""
     return np.stack(list(neighborhood_iter(img, kernel_size, pad)))
 
 
@@ -52,19 +56,19 @@ def reassemble(lines, kernel_size, original_w, original_h, channels=3):
     return np.reshape(pixels, (original_w, original_h, channels))
 
 
-def crop_groundtruth(img, kernel_size=None):
-    #radius = (kernel_size - 1) // 2
+def crop_groundtruth(img):
+    """Converts the continuous values in the groundtruths images into discrete
+    0 and 1"""
     img[img < 0.5] = -1
     img[img >= 0.5] = 1
-    #return img[radius : -radius, radius : -radius] not needed since image_to_features does padding
     return img
 
 
 def patch_map(img, patch_size, f=lambda p: p):
     """Downsamples the provided image by moving a squared patch of size
-    patch_size over it and applying, for each position, the function p
+    patch_size over it and applying, for each position, the function f.
+    Each pixel is used only once (strid = patch_size)
     """
-    #assert all([dim % patch_size == 0 for dim in img.shape[:2]]), 'Dimensions are not divisible by patch size'
     rows = []
     for i in range(0, img.shape[0], patch_size):
         row = []
@@ -76,6 +80,9 @@ def patch_map(img, patch_size, f=lambda p: p):
 
 
 def unpatch(patched, patch_size):
+    """Upsamples the provided image. Each pixel is repeated in square of dimension
+    (patch_size, patch_size).
+    """
     rows = []
     for row in patched:
         row_fragments = []
@@ -92,23 +99,17 @@ def unpatch(patched, patch_size):
 
 
 def patch_image(img, patch_size):
+    """Compresses image using patching with patch size patch_size"""
     return patch_map(img, patch_size, lambda p: np.mean(p, axis=(0, 1)))
 
 
 def patch_groundtruth(img, patch_size):
+    """Compresses groundtruth using patchin with patch_size patch_size"""
     return patch_map(img, patch_size, patch_to_class)
 
 
-def mean_shift_filter(img):
-    X = np.reshape(img, [-1, 3])
-    original_shape = img.shape
-    ms = MeanShift(bandwidth=0.013, bin_seeding=True)
-    ms.fit(X)
-    labels = ms.labels_
-    return np.reshape(labels, original_shape[:2])
-
-
 def reflect_padding(img, border_width):
+    """Pads image or groundtruth using mirroring"""
     padf = lambda img: np.pad(img, mode='reflect', pad_width=border_width)
     if len(img.shape) == 3:
         return np.stack([padf(img[:,:,i]) for i in range(img.shape[2])], axis=-1)
@@ -117,5 +118,8 @@ def reflect_padding(img, border_width):
 
 
 def patch_to_class(patch, threshold=0.25):
-    return 1 if np.sum(patch) > threshold else 0
+    """Indicates whether the provided patch of groundtruth is road or not by
+    comparing the percentage of road pixels in the patch to the provided
+    threshold"""
+    return 1 if np.mean(patch) > threshold else 0
 
