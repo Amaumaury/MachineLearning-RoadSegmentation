@@ -2,6 +2,7 @@ import numpy as np
 from preprocessing import *
 import sys, os
 import keras
+from skimage.color import rgb2hsv
 from keras.layers import Conv2D, Dense, Flatten, MaxPooling2D, LeakyReLU, Dropout
 
 # Image locations
@@ -23,7 +24,7 @@ LEARNING_RATE = 0.001
 files = os.listdir(IMAGE_DIR)
 
 # Load images and groudtruths
-imgs = np.stack([load_image(IMAGE_DIR + file) for file in files]) # images (400, 400, 3)
+imgs = np.stack([rgb2hsv(load_image(IMAGE_DIR + file)) for file in files]) # images (400, 400, 3)
 gt_imgs = np.stack([load_image(GT_DIR + file) for file in files]) # images (400, 400)
 
 # Apply patching compression to images and grondtruths
