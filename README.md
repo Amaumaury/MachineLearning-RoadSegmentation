@@ -14,8 +14,18 @@ To install keras use the command line 'conda install keras'.
 
 ## Running our model
 
-We saved our trained model in the file [...TODO...]
+We saved our trained model in the file gold_train_model_hsv.hdf5
 Simply run the file run.py which will load the model and predict on the tests images and produce the same submission.csv as the one given on Kaggle.
+
+## Files description
+- pred_images is the directory were predicted images will be saved.
+- provided is the directory with the provided code for the project.
+- test_set_images is the directory containing the test images.
+- training is the directory containing the train images, grountruth and hsv images preprocessed.
+- gold_train_model_hsv.hdf5 is our final model.
+- preprocessing.py contains our preprocessing functions.
+- run.py is the script to predict on the test images.
+- train_deepcnn.py is the script to train a new model.
 
 ## The Team - Les Semi-Croustillants
 - Vincenzo Bazzucchi (vincenzo.bazzucchi@epfl.ch)
