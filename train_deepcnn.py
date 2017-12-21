@@ -4,77 +4,88 @@ import sys, os
 import keras
 from keras.layers import Conv2D, Dense, Flatten, MaxPooling2D, LeakyReLU, Dropout
 
+# Image locations
 ROOT_DIR = 'training/'
 IMAGE_DIR = ROOT_DIR + 'images/'
 GT_DIR = ROOT_DIR + 'groundtruth/'
 
+# Preprocessing parameters
 PATCH_SIZE = 10
+NEIGHBORHOOD_SIZE = 71
 
-WINDOW_SIZE = 71
+# Training parameters
+N = 100 # Number of image to be used in training
+EPOCHS = 100
+LEAKYNESS = 0.1
+BATCH_SIZE = 1600
+LEARNING_RATE = 0.001
 
 files = os.listdir(IMAGE_DIR)
 
+# Load images and groudtruths
 imgs = np.stack([load_image(IMAGE_DIR + file) for file in files]) # images (400, 400, 3)
 gt_imgs = np.stack([load_image(GT_DIR + file) for file in files]) # images (400, 400)
 
-patched_imgs = np.stack([patch_image(img, PATCH_SIZE) for img in imgs]) # images (400, 400)
+# Apply patching compression to images and grondtruths
+patched_imgs = np.stack([patch_image(img, PATCH_SIZE) for img in imgs])
 patched_gts = np.stack([patch_groundtruth(gt, PATCH_SIZE) for gt in gt_imgs])
 
-PATCHED_SIZE = imgs.shape[1] // PATCH_SIZE
-WINDOWS_PER_IMAGE = PATCHED_SIZE ** 2
 
-N = 1 # Number of image to be used in training
-epochs = 2
+# Create neighborhoods
+neighborhoods_per_image = [image_to_neighborhoods(im, NEIGHBORHOOD_SIZE, True) for im in patched_imgs[:N]]
+neighborhoods = np.vstack(neighborhoods_per_image)
 
-leakyness = 0.1
+# Prepare 1 label per neighborhood
+labels = np.ravel(patched_gts[:N])
+labels = keras.utils.np_utils.to_categorical(labels)
 
-windows_per_image = [image_to_neighborhoods(im, WINDOW_SIZE, True) for im in patched_imgs[:N]]
-windows = np.vstack(windows_per_image)
-
-window_labels = np.ravel(patched_gts[:N])
-assert window_labels.shape[0] == windows.shape[0]
-
-window_labels = keras.utils.np_utils.to_categorical(window_labels)
-
-window_cnn = keras.models.Sequential([
-
-    Conv2D(32, (5, 5), strides=(1, 1), input_shape=windows.shape[1:]),
-    LeakyReLU(leakyness),
+# Define model
+cnn = keras.models.Sequential([
+    Conv2D(32, (5, 5), strides=(1, 1), input_shape=neighborhoods.shape[1:]),
+    LeakyReLU(LEAKYNESS),
 
     MaxPooling2D(2),
     Dropout(0.25),
 
     Conv2D(64, (3, 3), strides=(1, 1)),
-    LeakyReLU(leakyness),
+    LeakyReLU(LEAKYNESS),
 
     MaxPooling2D(2),
     Dropout(0.25),
 
     Conv2D(128, (3, 3), strides=(1, 1)),
-    LeakyReLU(leakyness),
+    LeakyReLU(LEAKYNESS),
 
     MaxPooling2D(2),
     Dropout(0.25),
 
     Conv2D(256, (3, 3), strides=(1, 1)),
-    LeakyReLU(leakyness),
+    LeakyReLU(LEAKYNESS),
 
     MaxPooling2D(2),
     Dropout(0.25),
 
     Dense(128),
-    LeakyReLU(leakyness),
+    LeakyReLU(LEAKYNESS),
 
     Flatten(),
     Dense(2, activation='sigmoid'),
 ])
 
-window_cnn.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.Adam(lr=0.001), metrics=['accuracy'])
+# Compile model
+cnn.compile(loss=keras.losses.categorical_crossentropy,
+        optimizer=keras.optimizers.Adam(lr=LEARNING_RATE),
+        metrics=['accuracy'])
 
+# Log progress to file and periodically save model
 callbacks = [
     keras.callbacks.CSVLogger('train_log.csv', separator=',', append=False),
     keras.callbacks.ModelCheckpoint(filepath='train_checkpoint.hdf5', verbose=1, period=20)
 ]
-window_cnn.fit(windows, window_labels, epochs=epochs, batch_size=1600, callbacks=callbacks)
-window_cnn.save('trained_model.hdf5')
+
+# Train
+cnn.fit(neighborhoods, labels, epochs=EPOCHS, batch_size=BATCH_SIZE, callbacks=callbacks)
+
+# Save trained model
+cnn.save('trained_model.hdf5')
 
