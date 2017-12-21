@@ -2,10 +2,13 @@ import numpy as np
 from keras.models import load_model
 from preprocessing import *
 from skimage.color import rgb2hsv
+from provided.mask_to_submission import *
+import scipy
 import os, sys
 
-model = load_model('trained_model.hdf5')
+model = load_model('gold_train_model_hsv.hdf5')
 TEST_DIR = 'test_set_images/'
+PRED_DIR = 'pred_images/'
 test_files = os.listdir(TEST_DIR)
 WINDOW_SIZE = 71
 
@@ -33,6 +36,13 @@ for file in test_files:
     preds = preds[1:-1, 1:-1]
     # Make sure prediction has same dimensions as original image
     assert preds.shape == img.shape[:2]
-    np.save(file, preds)
+    scipy.misc.imsave(PRED_DIR + file + '.png', preds)
     print('Saved array')
 
+pre_files = os.listdir(PRED_DIR)
+image_filenames = []
+for name in pre_files:
+    image_filename = PRED_DIR + name
+    image_filenames.append(image_filename)
+
+masks_to_submission('final_sub.csv', *image_filenames)
