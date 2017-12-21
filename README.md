@@ -13,10 +13,9 @@ Numpy, Scipy, Scikit-image and matplotlib are already installed in the basic con
 To install keras use the command line 'conda install keras'.
 
 ## Running our model
-
 We saved our trained model in the file gold_train_model_hsv.hdf5
-Simply run the file run.py which will load the model and predict on the tests images and produce the same submission.csv as the one given on Kaggle.
-If you wish to train a new model, simply run the train_deepcnn.py which will save the model under 'train_model.hdf5' and to test it modify the path of the model in run.py.
+Simply run the file run.py which will load the model and predict on the tests images and produce the same submission.csv as the one given on Kaggle. This script will take approximately 10-15mn to preprocess the images and predict from the model.
+If you wish to train a new model, simply run the train_deepcnn.py which will save the model under 'train_model.hdf5'. This script will take long to run (1h30 - 2h) and will require a GPU. To test it modify the path of the model in run.py.
 
 ## Files description
 - pred_images is the directory were predicted images will be saved.
@@ -27,6 +26,7 @@ If you wish to train a new model, simply run the train_deepcnn.py which will sav
 - preprocessing.py contains our preprocessing functions.
 - run.py is the script to predict on the test images.
 - train_deepcnn.py is the script to train a new model.
+
 
 ## The Team - Les Semi-Croustillants
 - Vincenzo Bazzucchi (vincenzo.bazzucchi@epfl.ch)
