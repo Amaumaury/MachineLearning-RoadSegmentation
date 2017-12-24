@@ -100,5 +100,5 @@ def make_img_overlay(img, predicted_img):
     img8 = img_float_to_uint8(img)
     background = Image.fromarray(img8, 'RGB').convert("RGBA")
     overlay = Image.fromarray(color_mask, 'RGB').convert("RGBA")
-    new_img = Image.blend(background, overlay, 0.5)
+    new_img = Image.blend(background, overlay, 0.3)
     return new_img
